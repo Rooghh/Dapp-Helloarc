@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@circle-fin/smart-contract-platform": "^10.1.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "webhook": "tsx webhook-receiver.ts",
+    "import-contract": "tsx --env-file=.env import-contract.ts",
+    "create-monitor": "tsx --env-file=.env create-monitor.ts",
+    "get-event-logs": "tsx --env-file=.env get-event-logs.ts"
+  }
+}

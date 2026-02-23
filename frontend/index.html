@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Architect dApp</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .greeting-display {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .greeting-display h2 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .greeting-text {
+            font-size: 1.5em;
+            color: #1b5e20;
+            font-weight: bold;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            margin: 10px 0;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .contract-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .contract-info p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ Hello Architect</h1>
+        <p class="subtitle">Seu primeiro dApp na blockchain!</p>
+        
+        <div class="status" id="status">
+            <p>🔌 Conecte sua carteira para começar</p>
+        </div>
+        
+        <button id="connectButton" onclick="connectWallet()">
+            🦊 Conectar MetaMask
+        </button>
+        
+        <div id="connectedSection" class="hidden">
+            <div class="contract-info">
+                <p><strong>📜 Contrato:</strong> <span id="contractAddress"></span></p>
+                <p><strong>👤 Sua Carteira:</strong> <span id="userAddress"></span></p>
+                <p><strong>🌐 Rede:</strong> Local (Anvil)</p>
+            </div>
+            
+            <div class="section">
+                <h3>📖 Ler Greeting</h3>
+                <button onclick="getGreeting()">Ver Mensagem Atual</button>
+                
+                <div id="greetingDisplay" class="greeting-display hidden">
+                    <h2>Mensagem Atual:</h2>
+                    <p class="greeting-text" id="currentGreeting"></p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>✏️ Atualizar Greeting</h3>
+                <input 
+                    type="text" 
+                    id="newGreeting" 
+                    placeholder="Digite a nova mensagem..."
+                    value="Hello from Web3!"
+                >
+                <button onclick="setGreeting()">Atualizar Mensagem</button>
+            </div>
+            
+            <div id="alert" class="hidden"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <script>
+        // CONFIGURAÇÃO - ALTERE AQUI COM SEU ENDEREÇO DO CONTRATO
+        const CONTRACT_ADDRESS = "0x3825c236495333cd252bf545f71b511b20773f5a";
+        const RPC_URL = "https://rpc.testnet.arc.network";
+        
+        // ABI do contrato
+        const CONTRACT_ABI = [
+            "function getGreeting() public view returns (string memory)",
+            "function setGreeting(string memory newGreeting) public",
+            "event GreetingChanged(string newGreeting)"
+        ];
+        
+        let provider;
+        let signer;
+        let contract;
+        
+        // Conectar carteira
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showAlert('Por favor, instale o MetaMask!', 'error');
+                    return;
+                }
+                
+                // Solicitar contas
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // Configurar provider e signer
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                
+                // Conectar ao contrato
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                // Obter endereço do usuário
+                const address = await signer.getAddress();
+                
+                // Atualizar UI
+                document.getElementById('userAddress').textContent = address;
+                document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS;
+                document.getElementById('status').innerHTML = '<p>✅ Conectado com sucesso!</p>';
+                document.getElementById('connectButton').style.display = 'none';
+                document.getElementById('connectedSection').classList.remove('hidden');
+                
+                showAlert('Carteira conectada com sucesso! 🎉', 'success');
+                
+                // Ler greeting automaticamente
+                await getGreeting();
+                
+            } catch (error) {
+                console.error(error);
+                showAlert('Erro ao conectar: ' + error.message, 'error');
+            }
+        }
+        
+        // Ler greeting
+        async function getGreeting() {
+            try {
+                showAlert('Lendo mensagem...', 'info');
+                
+                const greeting = await contract.getGreeting();
+                
+                document.getElementById('currentGreeting').textContent = greeting;
+                document.getElementById('greetingDisplay').classList.remove('hidden');
+                
+                showAlert('Mensagem carregada! ✅', 'success');
+                
+            } catch (error) {
+                console.error(error);
+                showAlert('Erro ao ler: ' + error.message, 'error');
+            }
+        }
+        
+        // Atualizar greeting
+        async function setGreeting() {
+            try {
+                const newGreeting = document.getElementById('newGreeting').value;
+                
+                if (!newGreeting) {
+                    showAlert('Digite uma mensagem!', 'error');
+                    return;
+                }
+                
+                showAlert('Enviando transação... ⏳', 'info');
+                
+                const tx = await contract.setGreeting(newGreeting);
+                
+                showAlert('Aguardando confirmação... ⏳', 'info');
+                
+                await tx.wait();
+                
+                showAlert('Mensagem atualizada com sucesso! 🎉', 'success');
+                
+                // Atualizar display
+                await getGreeting();
+                
+            } catch (error) {
+                console.error(error);
+                showAlert('Erro ao atualizar: ' + error.message, 'error');
+            }
+        }
+        
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alert');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertDiv.classList.add('hidden');
+                }, 5000);
+            }
+        }
+        
+        // Adicionar rede local ao MetaMask automaticamente
+        async function addLocalNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x4cef52', // 31337 em hexadecimal
+                        chainName: 'Arc Testnet',
+                        nativeCurrency: {
+                            name: 'USDC',
+                            symbol: 'USDC',
+                            decimals: 18
+                        },
+                        rpcUrls: ['http://127.0.0.1:8545'],
+                        blockExplorerUrls: ["https://testnet.arcscan.app"]
+                    }]
+                });
+            } catch (error) {
+                console.log('Rede já existe ou erro:', error);
+            }
+        }
+        
+        // Adicionar rede ao carregar
+        window.addEventListener('load', () => {
+            if (typeof window.ethereum !== 'undefined') {
+                addLocalNetwork();
+            }
+        });
+    </script>
+</body>
+</html>
